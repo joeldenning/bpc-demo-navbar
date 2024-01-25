@@ -1,0 +1,82 @@
+name: Build and Test
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      # Add any other checks here
+      # - run: npm run check-format
+      # - run: npm run lint
+      - name: Store build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: static-assets
+          path: dist
+
+  deploy-dev:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download static assets
+        uses: actions/download-artifact@v3
+        with:
+          name: static-assets
+          path: dist
+      - uses: ConvexCooperative/baseplate-deploy-action@v2.0.0
+        with:
+          baseplate-token: ${{ secrets.BASEPLATE_TOKEN }}
+          microfrontend-name: "navbar"
+          environment-name: dev
+          upload-dir: dist
+          entry-file: test50-navbar.js
+
+  deploy-stage:
+    needs: deploy-dev
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download static assets
+        uses: actions/download-artifact@v3
+        with:
+          name: static-assets
+          path: dist
+      - uses: ConvexCooperative/baseplate-deploy-action@v2.0.0
+        with:
+          baseplate-token: ${{ secrets.BASEPLATE_TOKEN }}
+          microfrontend-name: "navbar"
+          environment-name: stage
+          upload-dir: dist
+          entry-file: test50-navbar.js
+
+  deploy-prod:
+    needs: deploy-stage
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download static assets
+        uses: actions/download-artifact@v3
+        with:
+          name: static-assets
+          path: dist
+      - uses: ConvexCooperative/baseplate-deploy-action@v2.0.0
+        with:
+          baseplate-token: ${{ secrets.BASEPLATE_TOKEN }}
+          microfrontend-name: "navbar"
+          environment-name: prod
+          upload-dir: dist
+          entry-file: test50-navbar.js
