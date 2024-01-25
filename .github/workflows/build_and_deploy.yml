@@ -44,6 +44,7 @@ jobs:
           environment-name: dev
           upload-dir: dist
           entry-file: test50-navbar.js
+          auto-version: true
 
   deploy-stage:
     needs: deploy-dev
@@ -62,6 +63,7 @@ jobs:
           environment-name: stage
           upload-dir: dist
           entry-file: test50-navbar.js
+          auto-version: true
 
   deploy-prod:
     needs: deploy-stage
@@ -80,3 +82,4 @@ jobs:
           environment-name: prod
           upload-dir: dist
           entry-file: test50-navbar.js
+          auto-version: true
